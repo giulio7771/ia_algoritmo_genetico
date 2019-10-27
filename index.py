@@ -42,16 +42,19 @@ def fitness(cromossomo):
     return dist
 
 def darwin(cromossomos, aptidao):
+    print("Darwin")
     aptidao_sorted = sorted(aptidao, key = lambda i: (i['fitness']))
     cromossomos_sorted = []
     for i in range(10):
         #print("cidade {} - {}".format(aptidao_sorted[i].get('cidade'), aptidao_sorted[i].get('fitness')))
         city = aptidao_sorted[i].get('cidade')
+        del cromossomos[city][20]
         cromossomos_sorted.append(cromossomos[city])
         #print(cromossomos_sorted[i])
     return cromossomos_sorted
 
 def roleta(cromossomos):
+    print("Roleta")
     pai = []
     mae = []
     prob = []
@@ -66,18 +69,26 @@ def roleta(cromossomos):
     return [pai, mae]
 
 def crossover(pais):
+    print("Crossover")
     pai = pais[0]
     mae = pais[1]
     filhos = []
     for i in range(len(pai)):
+        print(" cross", i)
         p1 = pai[i]
         p2 = mae[i]
         idx = np.random.randint(19)
         pais = crossing(p1, p2, idx)
         p1 = pais[0]
         p2 = pais[1]
+        crossed_idxs = []
+        crossed_idxs.append(idx)
         while(True):
-            ret = cidadeRepete(p1, idx)
+            print("cross {} iterando".format(i))
+            ret = cidadeRepete(p1, crossed_idxs)
+            crossed_idxs.append(ret)
+            print(p1)
+            print(ret)
             if ret == -1:
                 filhos.append(p1)
                 filhos.append(p2)
@@ -88,37 +99,55 @@ def crossover(pais):
     return filhos
 
 def crossing(p1, p2, idx):
+    #print("Crossing")
     aux = p1[idx]
     p1[idx] = p2[idx]
     p2[idx] = aux
-    if idx == 0:
-        p1[20] = p1[0]
-        p2[20] = p2[0]
     return [p1, p2]
 
-def cidadeRepete(cromossomo, idx):
+def cidadeRepete(cromossomo, crossed_idxs):
     for i in range(len(cromossomo)):
         for j in range(len(cromossomo)):
-            if cromossomo[i] == cromossomo[j] and idx != i:
-                return i
+            if (cromossomo[i] == cromossomo[j]) and (doesntContain(crossed_idxs, j)) and (i != j):
+                return j
     return -1
+
+def doesntContain(lista, indice):
+    return not (indice in lista)
 
 def mergeFilhos(a1, a2):
     for i in range(10):
         a1.append(a2[i])
     return a1
 
+def removeLastGenoma(cromossomo):
+    #Removendo a cidade de retorno para não ter problemas no crossover
+    pai = cromossomo[0]
+    mae = cromossomo[1]
+    print(pai)
+    del pai[20] 
+    del mae[20]
+    return [pai, mae]
+
+def addLastGenoma(cromossomos):
+    for i in range(20): 
+        cromossomos[i].append(cromossomos[i][0])
+    return cromossomos
+
 def app():
     init_city()
     cromossomos = init_cromossomos()
     for j in range(10000):
+        print("Iteração {}".format(j))
         aptidao = []
         for i in range(20):
             aptidao.append({"cidade" : i, "fitness": fitness(cromossomos[i])})
         cromossomos = darwin(cromossomos, aptidao)
         pais = roleta(cromossomos)
+        #pais = removeLastGenoma(pais)
         filhos = crossover(pais)
         cromossomos = mergeFilhos(cromossomos, filhos)
+        cromossomos = addLastGenoma(cromossomos)
 
 
 app()

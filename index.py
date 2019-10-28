@@ -162,11 +162,21 @@ def addLastGenoma(cromossomos):
 def app():
     init_city()
     cromossomos = init_cromossomos()
-    for j in range(10):
+    for j in range(1000):
         print("Iteração {}".format(j))
         aptidao = []
+        aptidao_graph = []
+        city_graph = []
         for i in range(20):
-            aptidao.append({"cidade" : i, "fitness": fitness(cromossomos[i])})
+            fit = fitness(cromossomos[i])
+            aptidao.append({"cidade" : i, "fitness": fit})
+            aptidao_graph.append(fit)
+            city_graph.append("{}".format(i + 1))
+        if j == 999:
+            plt.plot(city_graph, aptidao_graph)
+            plt.xlabel("cromossomo")
+            plt.ylabel("custo")
+            plt.show()
         cromossomos = ordena(cromossomos, aptidao)
         pais = roleta(cromossomos)
         #print("pais")
